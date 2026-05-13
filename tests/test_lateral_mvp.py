@@ -468,6 +468,21 @@ class LateralMvpTests(unittest.TestCase):
         self.assertNotIn("curl | sh", readme)
         self.assertNotIn("curl|sh", readme)
 
+    def test_plugin_vendor_matches_engine_sources(self) -> None:
+        source_dir = Path("lateral")
+        vendor_dir = Path("plugins/lateral-mode/vendor/lateral")
+        source_files = sorted(source_dir.glob("*.py"))
+
+        self.assertTrue(source_files)
+        for source in source_files:
+            vendor = vendor_dir / source.name
+            self.assertTrue(vendor.exists(), f"{vendor} should exist")
+            self.assertEqual(
+                vendor.read_text(encoding="utf-8"),
+                source.read_text(encoding="utf-8"),
+                f"{vendor} is out of sync with {source}",
+            )
+
     def test_claude_plugin_hook_uses_plugin_data_without_repo_state(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_data, tempfile.TemporaryDirectory() as tmp_repo:
             plugin = Path("plugins/lateral-mode").resolve()

@@ -1,4 +1,4 @@
-.PHONY: test eval eval-suite compile plugin-validate package-smoke clean verify
+.PHONY: test eval eval-suite compile plugin-validate package-smoke sync-vendor clean verify
 
 PYTHON ?= python3
 
@@ -36,6 +36,9 @@ package-smoke:
 	LATERAL_HOME="$$tmp/home" "$$tmp/venv/bin/lateral" outcome --path "$$tmp/repo" --resolved yes --rating 4 --validation passed; \
 	LATERAL_HOME="$$tmp/home" "$$tmp/venv/bin/lateral" metrics --path "$$tmp/repo"; \
 	rm -rf "$$tmp"
+
+sync-vendor:
+	rsync -a --delete --exclude '__pycache__' lateral/ plugins/lateral-mode/vendor/lateral/
 
 clean:
 	rm -rf lateral/__pycache__ tests/__pycache__ build dist *.egg-info
