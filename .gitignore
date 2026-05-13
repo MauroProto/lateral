@@ -6,4 +6,5 @@ dist/
 .venv/
 venv/
 .DS_Store
-
+lateral_mode_guia_paso_a_paso.md
+lateral_mode_v4_actualizado.md

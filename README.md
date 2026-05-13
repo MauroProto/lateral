@@ -1,87 +1,62 @@
 # Lateral Mode
 
-Lateral Mode is a local workflow gate for coding agents.
+Lateral Mode is a local Claude Code plugin and Python CLI that helps coding
+agents avoid premature edits on ambiguous work.
 
-It does not try to make an LLM "more creative" by magic. It adds a practical
-guardrail: when a task looks ambiguous, intermittent, cross-layer, or risky, the
-agent must slow down, form multiple hypotheses, gather cheap evidence, converge,
-and validate before it edits or closes the task.
-
-For simple work, it stays out of the way.
-
-## Why This Exists
-
-Coding agents often fail on ambiguous bugs for the same reason humans do:
-they commit too early to the first plausible explanation.
-
-Lateral Mode turns that into an explicit local loop:
+It keeps simple tasks fast. When a prompt looks like an intermittent bug,
+cross-layer failure, incident, flaky test, or risky design decision, it asks the
+agent to anchor the problem, generate distinct hypotheses, gather cheap
+evidence, converge, and validate.
 
 ```text
 anchor -> hypotheses -> probes -> evidence -> convergence -> edit -> validation
 ```
 
-The MVP goal is intentionally narrow:
+## Install
 
-- do not add friction to obvious tasks
-- activate on ambiguous bugs and incidents
-- block premature edits only in strict mode
-- measure whether the workflow helped in real sessions
-
-## What It Provides
-
-- A Python CLI named `lateral`
-- A self-contained Claude Code plugin at `plugins/lateral-mode`
-- A local Claude Code marketplace at `.claude-plugin/marketplace.json`
-- Claude Code skills for debugging, design, and control
-- Claude Code subagents for reframing and verification
-- Claude Code hooks for prompt classification, pre-tool gating, and stop checks
-- Local telemetry for activations, blocks, validation, and human outcomes
-- Synthetic eval fixtures for router and gate regression testing
-
-## Repository Layout
-
-```text
-.
-├── lateral/                         # Python engine and CLI
-├── plugins/lateral-mode/            # Claude Code plugin bundle
-│   ├── .claude-plugin/plugin.json   # Plugin manifest
-│   ├── skills/                      # Claude Code skills
-│   ├── agents/                      # Claude Code subagents
-│   ├── hooks/hooks.json             # Claude Code hook config
-│   ├── scripts/lateral_hook.py      # Plugin hook entrypoint
-│   ├── bin/lateral-mode             # Plugin control command
-│   └── vendor/lateral/              # Vendored engine for self-contained plugin use
-├── .claude-plugin/marketplace.json  # Local marketplace manifest
-├── eval/fixtures/                   # Router and gate eval fixtures
-├── tests/                           # Unit and integration tests
-└── Makefile                         # Verification commands
-```
-
-## Install for Local Development
+One command:
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/MauroProto/lateral/main/install.sh -o /tmp/lateral-install.sh && bash /tmp/lateral-install.sh
+```
+
+The installer:
+
+- clones or updates the repo at `~/.lateral-mode/source`
+- creates a private Python venv at `~/.lateral-mode/venv`
+- installs the `lateral` CLI
+- symlinks it to `~/.local/bin/lateral`
+- validates the Claude Code plugin
+- registers the local marketplace
+- installs `lateral-mode@lateral-local` when Claude Code is available
+
+Manual install:
+
+```bash
+git clone https://github.com/MauroProto/lateral.git
+cd lateral
 python3 -m pip install -e .
+claude plugin marketplace add .
+claude plugin install lateral-mode@lateral-local
 ```
 
-Check the CLI:
-
-```bash
-lateral status --path .
-lateral eval-suite \
-  --fixtures eval/fixtures/mvp_tasks.json \
-  --fixtures eval/fixtures/robust_router_tasks.json \
-  --fixtures eval/fixtures/stress_router_tasks.json
-```
-
-## Use as a Claude Code Plugin
-
-Run the plugin directly without installing it:
+Run without installing the plugin:
 
 ```bash
 claude --plugin-dir ./plugins/lateral-mode
 ```
 
-Inside Claude Code, the plugin exposes:
+## What It Adds
+
+### Claude Code plugin
+
+Plugin bundle:
+
+```text
+plugins/lateral-mode/
+```
+
+Available skills:
 
 ```text
 /lateral-mode:lateral-debug
@@ -89,7 +64,14 @@ Inside Claude Code, the plugin exposes:
 /lateral-mode:lateral-control
 ```
 
-It also exposes a command available to Claude's Bash tool:
+Available plugin agents:
+
+```text
+lateral-mode:reframer
+lateral-mode:verifier
+```
+
+Available command inside Claude's Bash tool:
 
 ```bash
 lateral-mode status
@@ -103,120 +85,49 @@ lateral-mode metrics
 lateral-mode report
 ```
 
-## Install from the Local Marketplace
-
-From this repository root:
+### Python CLI
 
 ```bash
-claude plugin marketplace add .
-claude plugin install lateral-mode@lateral-local
-```
-
-Then reload plugins inside Claude Code:
-
-```text
-/reload-plugins
-```
-
-Validate the plugin and marketplace:
-
-```bash
-claude plugin validate ./plugins/lateral-mode
-claude plugin validate .
+lateral status --path .
+lateral mode strict --path .
+lateral checkpoint --path . --json '{"anchor":{"problem":"..."},"hypotheses":[...],"winner":"H1"}'
+lateral outcome --path . --resolved yes --rating 4 --validation passed
+lateral report --path .
 ```
 
 ## Modes
 
-### `off`
+| Mode | Behavior |
+| --- | --- |
+| `off` | No lateral behavior. |
+| `auto` | Default. Classifies each prompt and activates only when useful. |
+| `lite` | Adds lateral guidance but does not block edits. |
+| `strict` | Blocks premature edits until the agent records anchor, hypotheses, probes, and convergence. |
 
-No lateral behavior.
-
-```bash
-lateral off --path /path/to/repo
-lateral-mode off
-```
-
-### `auto`
-
-Default mode. The classifier decides whether a prompt is direct, lite, or
-strict.
-
-```bash
-lateral mode auto --path /path/to/repo
-lateral-mode auto
-```
-
-### `lite`
-
-Injects lateral guidance, but does not block edits.
-
-```bash
-lateral mode lite --path /path/to/repo
-lateral-mode lite
-```
-
-### `strict`
-
-Blocks premature edits on ambiguous tasks until a checkpoint records:
-
-- an anchor
-- at least two materially distinct hypotheses
-- a probe for each hypothesis
-- a converged winning hypothesis
-
-```bash
-lateral mode strict --path /path/to/repo
-lateral-mode strict
-```
-
-## Hook Behavior
+## How the Gate Works
 
 The Claude Code plugin installs three hooks:
 
-### `UserPromptSubmit`
+| Hook | Purpose |
+| --- | --- |
+| `UserPromptSubmit` | Classifies the prompt and injects lateral context only when needed. |
+| `PreToolUse` | Blocks risky Bash commands and premature writes in strict mode. |
+| `Stop` | Requires validation or an explicit validation exception before closing lateral work. |
 
-Classifies each prompt and injects lateral guidance only when useful.
+Strict mode allows writes only after a checkpoint with:
 
-Control prompts are also supported:
+- a clear problem anchor
+- at least two materially distinct hypotheses
+- a cheap probe for each hypothesis
+- a winning hypothesis or convergence decision
 
-```text
-lateral on
-lateral off
-lateral auto
-lateral lite
-lateral strict
-lateral status
-```
-
-### `PreToolUse`
-
-Blocks risky Bash commands and, in strict mode, blocks premature writes through
-tools such as `Edit`, `Write`, and `MultiEdit`.
-
-Examples of blocked Bash patterns:
-
-```text
-rm -rf /
-git push --force
-curl ... | sh
-wget ... | bash
-```
-
-### `Stop`
-
-Prevents the agent from ending a lateral session without validation or an
-explicit reason validation was not possible. The stop hook also handles
-`stop_hook_active` so it does not create recursive stop loops.
-
-## Recording a Checkpoint
-
-When strict mode blocks editing, the agent should record convergence:
+Example checkpoint:
 
 ```bash
-lateral checkpoint --path /path/to/repo --json '{
+lateral-mode checkpoint --json '{
   "anchor": {
     "problem": "Checkout sometimes succeeds but payment is missing later",
-    "success_criteria": ["payment status is consistent across UI, API, and webhook logs"]
+    "success_criteria": ["UI, API, and webhook state agree"]
   },
   "hypotheses": [
     {
@@ -236,15 +147,9 @@ lateral checkpoint --path /path/to/repo --json '{
 }'
 ```
 
-With the Claude plugin active, the shorter form is:
+## Measurement
 
-```bash
-lateral-mode checkpoint --json '{"anchor":{"problem":"..."},"hypotheses":[...],"winner":"H1"}'
-```
-
-## Measuring Whether It Helps
-
-Lateral Mode records local JSONL events:
+Lateral Mode records local JSONL telemetry for:
 
 - prompt classifications
 - lateral activations
@@ -252,89 +157,57 @@ Lateral Mode records local JSONL events:
 - stop blocks
 - human outcome ratings
 
-Record an outcome after real work:
+Record real outcomes:
 
 ```bash
-lateral outcome --path /path/to/repo --resolved yes --rating 5 --validation passed
-lateral outcome --path /path/to/repo --resolved no --rating 2 --validation failed --notes "wrong hypothesis"
+lateral-mode outcome --resolved yes --rating 5 --validation passed
+lateral-mode outcome --resolved no --rating 2 --validation failed --notes "wrong hypothesis"
 ```
 
-With the plugin:
+Inspect results:
 
 ```bash
-lateral-mode outcome --resolved yes --rating 4 --validation passed
+lateral-mode metrics
+lateral-mode report
+lateral-mode report --json
 ```
 
-Inspect metrics:
+The current MVP is validated against synthetic fixtures and packaging smoke
+tests. It does not yet prove higher real-world bug resolution. Use `outcome`
+records across 20-50 real tasks to compare baseline agent behavior against
+`lateral-mode auto`.
 
-```bash
-lateral metrics --path /path/to/repo
-lateral report --path /path/to/repo
-lateral report --path /path/to/repo --json
+## Project Layout
+
+```text
+.
+├── install.sh                       # one-command installer
+├── lateral/                         # Python engine and CLI
+├── plugins/lateral-mode/            # Claude Code plugin bundle
+├── .claude-plugin/marketplace.json  # local Claude plugin marketplace
+├── eval/fixtures/                   # router and gate eval fixtures
+├── tests/                           # unit and integration tests
+└── Makefile                         # verification entrypoint
 ```
-
-Example report fields:
-
-```json
-{
-  "user_prompts": 10,
-  "lateral_activations": 3,
-  "activation_rate": 0.3,
-  "pre_tool_denies": 1,
-  "stop_blocks": 1,
-  "outcomes": 4,
-  "resolve_rate": 0.75,
-  "average_rating": 4.25
-}
-```
-
-## Real Evaluation Protocol
-
-Synthetic routing tests are necessary, but they do not prove product value.
-
-To test whether Lateral Mode actually helps:
-
-1. Collect 20-50 real coding tasks.
-2. Split them into simple tasks and ambiguous bugs/incidents/refactors.
-3. Run a baseline with normal agent behavior.
-4. Run the same task class with `lateral-mode auto`.
-5. Record outcome after every task:
-   - resolved: yes/no
-   - rating: 1-5
-   - validation: passed/failed/not_run/not_applicable
-   - notes: friction, wrong hypothesis, or useful probe
-6. Compare:
-   - resolution rate
-   - time to fix
-   - validation rate
-   - false activations on simple tasks
-   - missed activations on ambiguous tasks
-   - user friction
-
-The current MVP has strong synthetic and packaging validation. It still needs
-real historical bug-fix evaluation before claiming it improves production
-outcomes.
 
 ## Verification
-
-Run the full local verification suite:
 
 ```bash
 make verify
 ```
 
-The verification target runs:
+This runs:
 
-- unit and integration tests
-- built-in eval
+- Python unit and integration tests
+- router evals
 - fixture eval suite
 - Python compilation checks
-- Claude plugin manifest validation
-- Claude marketplace validation
-- temporary virtualenv package smoke test
-- artifact cleanup
+- `claude plugin validate ./plugins/lateral-mode`
+- `claude plugin validate .`
+- package install smoke test in a temporary venv
+- cleanup of generated artifacts
 
-You can run smaller checks directly:
+Focused checks:
 
 ```bash
 python3 -m unittest discover -s tests -v
@@ -346,22 +219,32 @@ claude plugin validate ./plugins/lateral-mode
 claude plugin validate .
 ```
 
-## Security and Privacy
+## Safety and Privacy
 
 - No secrets are required.
 - No remote service is required.
-- State is local.
-- The Claude Code plugin stores durable state in `${CLAUDE_PLUGIN_DATA}/.lateral/`.
-- Global CLI install stores state in `~/.lateral/`.
-- Uninitialized repositories are not modified just because the global/plugin hook runs.
-- Risky shell bootstrap patterns such as `curl | sh` are blocked.
+- Plugin state is stored locally in `${CLAUDE_PLUGIN_DATA}/.lateral/`.
+- CLI global state is stored locally in `~/.lateral/`.
+- Repositories are not modified just because the plugin hook runs.
+- Risky commands such as `rm -rf /`, `git push --force`, and `curl ... | sh`
+  are blocked by the hook.
 
 ## Troubleshooting
 
-### The plugin does not appear
+### `lateral` is not found
+
+The installer symlinks the CLI to `~/.local/bin/lateral`. Add this directory to
+your shell `PATH` if needed:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### Claude plugin does not appear
 
 ```bash
 claude plugin validate ./plugins/lateral-mode
+claude plugin validate .
 claude --plugin-dir ./plugins/lateral-mode
 ```
 
@@ -372,30 +255,6 @@ Inside Claude Code:
 /plugin
 ```
 
-### Skills do not appear
-
-Check that the skill files live here:
-
-```text
-plugins/lateral-mode/skills/<skill-name>/SKILL.md
-```
-
-They must not be placed inside `.claude-plugin/`.
-
-### Hooks do not fire
-
-Run Claude Code in debug mode:
-
-```bash
-claude --debug --plugin-dir ./plugins/lateral-mode
-```
-
-Check:
-
-- `plugins/lateral-mode/hooks/hooks.json`
-- `plugins/lateral-mode/scripts/lateral_hook.py`
-- executable permissions on `scripts/lateral_hook.py`
-
 ### The gate is too intrusive
 
 ```bash
@@ -405,7 +264,7 @@ lateral-mode off
 or:
 
 ```bash
-lateral off --path /path/to/repo
+lateral off --path .
 ```
 
 ## License

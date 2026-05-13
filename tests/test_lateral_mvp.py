@@ -455,6 +455,19 @@ class LateralMvpTests(unittest.TestCase):
         self.assertTrue(os.access(plugin / "scripts" / "lateral_hook.py", os.X_OK))
         self.assertTrue(os.access(plugin / "bin" / "lateral-mode", os.X_OK))
 
+    def test_one_command_installer_is_documented_and_executable(self) -> None:
+        installer = Path("install.sh")
+        readme = Path("README.md").read_text(encoding="utf-8")
+        script = installer.read_text(encoding="utf-8")
+
+        self.assertTrue(installer.exists())
+        self.assertTrue(os.access(installer, os.X_OK))
+        self.assertIn("https://github.com/MauroProto/lateral.git", script)
+        self.assertIn("claude plugin install lateral-mode@lateral-local", script)
+        self.assertIn("curl -fsSL https://raw.githubusercontent.com/MauroProto/lateral/main/install.sh", readme)
+        self.assertNotIn("curl | sh", readme)
+        self.assertNotIn("curl|sh", readme)
+
     def test_claude_plugin_hook_uses_plugin_data_without_repo_state(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_data, tempfile.TemporaryDirectory() as tmp_repo:
             plugin = Path("plugins/lateral-mode").resolve()
