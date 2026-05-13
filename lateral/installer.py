@@ -619,7 +619,12 @@ def write_global_plugin_bundle(root: Path, force: bool) -> None:
 def write_lateral_vendor(plugin: Path, force: bool) -> None:
     source = Path(__file__).resolve().parents[1] / "lateral"
     vendor = plugin / "vendor" / "lateral"
-    for src in sorted(source.glob("*.py")):
+    source_files = {src.name: src for src in sorted(source.glob("*.py"))}
+    if vendor.exists():
+        for stale in vendor.glob("*.py"):
+            if stale.name not in source_files:
+                stale.unlink()
+    for src in source_files.values():
         write_text(vendor / src.name, src.read_text(encoding="utf-8"), force=True)
 
 

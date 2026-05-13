@@ -483,6 +483,17 @@ class LateralMvpTests(unittest.TestCase):
                 f"{vendor} is out of sync with {source}",
             )
 
+    def test_generated_claude_plugin_vendor_prunes_stale_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_project(root, target="claude")
+            stale = root / "plugins" / "lateral-mode" / "vendor" / "lateral" / "stale.py"
+            stale.write_text("raise RuntimeError('stale')\n", encoding="utf-8")
+
+            init_project(root, target="claude")
+
+            self.assertFalse(stale.exists())
+
     def test_claude_plugin_hook_uses_plugin_data_without_repo_state(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_data, tempfile.TemporaryDirectory() as tmp_repo:
             plugin = Path("plugins/lateral-mode").resolve()
