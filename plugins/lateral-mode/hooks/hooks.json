@@ -1,0 +1,54 @@
+{
+  "description": "Lateral Mode prompt, tool, and stop gates for Claude Code.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/lateral_hook.py",
+            "args": [
+              "user-prompt",
+              "--platform",
+              "claude"
+            ],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/lateral_hook.py",
+            "args": [
+              "pre-tool",
+              "--platform",
+              "claude"
+            ],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/lateral_hook.py",
+            "args": [
+              "stop",
+              "--platform",
+              "claude"
+            ],
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

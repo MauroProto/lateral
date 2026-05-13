@@ -1,0 +1,111 @@
+[
+  {
+    "id": "simple-doc-architecture-word",
+    "kind": "simple",
+    "prompt": "Document the architecture section typo in README only",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-incident-copy",
+    "kind": "simple",
+    "prompt": "Fix grammar in the incident postmortem title, no code changes",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-root-cause-comment",
+    "kind": "simple",
+    "prompt": "Rename the variable root_cause_comment to cause_comment in one file",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-flaky-word-doc",
+    "kind": "simple",
+    "prompt": "Correct the spelling of the word flaky in docs/testing.md",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-single-stacktrace",
+    "kind": "simple",
+    "prompt": "Fix the nil pointer shown by this clear stacktrace in one file",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-mechanical-import-sort",
+    "kind": "simple",
+    "prompt": "Sort imports mechanically in src/main.ts",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-css-class-rename",
+    "kind": "simple",
+    "prompt": "Rename CSS class .incident-card to .report-card",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-test-snapshot-update",
+    "kind": "simple",
+    "prompt": "Update snapshot text after copy change",
+    "expected": "direct"
+  },
+  {
+    "id": "ambiguous-spanish-no-keyword",
+    "kind": "ambiguous",
+    "prompt": "A veces el guardado queda como exitoso pero al refrescar desaparece",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-english-sometimes",
+    "kind": "ambiguous",
+    "prompt": "Sometimes checkout succeeds in the UI but the payment is missing later",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-multi-layer",
+    "kind": "ambiguous",
+    "prompt": "The UI, API, and worker disagree about order status after deploy",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-no-repro",
+    "kind": "ambiguous",
+    "prompt": "No logro reproducirlo localmente pero usuarios reportan datos duplicados",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-regression-after-deploy",
+    "kind": "ambiguous",
+    "prompt": "Regression after deploy: sessions disappear only for some accounts",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-data-mismatch",
+    "kind": "ambiguous",
+    "prompt": "La pantalla muestra total pagado distinto al backend y al export CSV",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-async-race-spanish",
+    "kind": "ambiguous",
+    "prompt": "Parece una carrera entre cerrar el modal y confirmar la respuesta del servidor",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-env-drift",
+    "kind": "ambiguous",
+    "prompt": "Only staging fails, production and local pass with the same code",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "design-api-tradeoff",
+    "kind": "ambiguous",
+    "prompt": "Choose an API design for idempotent retries with rollback and observability",
+    "expected": "lateral_lite"
+  },
+  {
+    "id": "design-refactor-plan",
+    "kind": "ambiguous",
+    "prompt": "Plan a risky refactor across auth, billing, and worker boundaries",
+    "expected": "lateral_lite"
+  }
+]
+

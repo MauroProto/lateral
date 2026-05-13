@@ -1,0 +1,27 @@
+{
+  "name": "lateral-local",
+  "metadata": {
+    "description": "Local marketplace for the Lateral Mode Claude Code plugin."
+  },
+  "owner": {
+    "name": "local"
+  },
+  "plugins": [
+    {
+      "name": "lateral-mode",
+      "source": "./plugins/lateral-mode",
+      "description": "Claude Code plugin that gates ambiguous coding tasks with lateral hypotheses, probes, and validation.",
+      "version": "0.2.0",
+      "author": {
+        "name": "local"
+      },
+      "category": "development-workflows",
+      "tags": [
+        "claude-code",
+        "debugging",
+        "workflow",
+        "validation"
+      ]
+    }
+  ]
+}

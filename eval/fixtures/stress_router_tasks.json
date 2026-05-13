@@ -1,0 +1,87 @@
+[
+  {
+    "id": "simple-architecture-alt-text",
+    "kind": "simple",
+    "prompt": "Update architecture diagram alt text only",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-worker-doc-typo",
+    "kind": "simple",
+    "prompt": "Fix billing worker typo in docs",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-api-design-variable",
+    "kind": "simple",
+    "prompt": "Rename api_design variable in one file",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-incident-csv-wording",
+    "kind": "simple",
+    "prompt": "Update incident CSV sample wording only",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-modal-copy",
+    "kind": "simple",
+    "prompt": "Change modal title copy",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-server-doc-spelling",
+    "kind": "simple",
+    "prompt": "Fix server docs spelling",
+    "expected": "direct"
+  },
+  {
+    "id": "ambiguous-payment-webhook",
+    "kind": "ambiguous",
+    "prompt": "Payment is marked paid in UI but the webhook never arrives",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-stale-profile-cache",
+    "kind": "ambiguous",
+    "prompt": "Users see stale profile after saving; cache refresh eventually catches up",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-worker-old-schema",
+    "kind": "ambiguous",
+    "prompt": "Queue worker processes old schema after deploy",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-session-cookie-redirect",
+    "kind": "ambiguous",
+    "prompt": "Auth succeeds but session cookie disappears after redirect",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-totals-subset",
+    "kind": "ambiguous",
+    "prompt": "Totals differ between UI and CSV export for a subset of accounts",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-ci-retries",
+    "kind": "ambiguous",
+    "prompt": "Local passes, CI fails only on retries",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "design-migration-strategy",
+    "kind": "ambiguous",
+    "prompt": "Plan migration strategy for billing API with rollback",
+    "expected": "lateral_lite"
+  },
+  {
+    "id": "design-ownership-boundary",
+    "kind": "ambiguous",
+    "prompt": "Choose ownership boundary for auth session refactor",
+    "expected": "lateral_lite"
+  }
+]
+

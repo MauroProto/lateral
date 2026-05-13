@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lateral-mode"
+version = "0.2.0"
+description = "Local plugin-controlled lateral workflow gate for coding agents"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+lateral = "lateral.cli:main"
+
+[tool.setuptools]
+packages = ["lateral"]

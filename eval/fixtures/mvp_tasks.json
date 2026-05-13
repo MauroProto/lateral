@@ -1,0 +1,63 @@
+[
+  {
+    "id": "simple-typo-readme",
+    "kind": "simple",
+    "prompt": "Fix the typo in README",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-lint-file",
+    "kind": "simple",
+    "prompt": "Fix the lint error in src/foo.ts",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-prettier",
+    "kind": "simple",
+    "prompt": "Aplicar formato prettier al archivo",
+    "expected": "direct"
+  },
+  {
+    "id": "simple-rename-local",
+    "kind": "simple",
+    "prompt": "Renombrar una variable local en un solo archivo",
+    "expected": "direct"
+  },
+  {
+    "id": "ambiguous-modal-save",
+    "kind": "ambiguous",
+    "prompt": "Hay un bug intermitente y cross-layer en el save del modal",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-cache-root-cause",
+    "kind": "ambiguous",
+    "prompt": "Cache bug intermitente con causa raiz incierta",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-flaky-test",
+    "kind": "ambiguous",
+    "prompt": "Flaky test sin repro estable, busca root cause antes de tocar codigo",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "ambiguous-incident-latency",
+    "kind": "ambiguous",
+    "prompt": "Incidente de latencia con causa raiz incierta y varias capas posibles",
+    "expected": "lateral_strict"
+  },
+  {
+    "id": "architecture-batch-rollback",
+    "kind": "ambiguous",
+    "prompt": "Disenar arquitectura de batch processing con rollback y sin romper SLA",
+    "expected": "lateral_lite"
+  },
+  {
+    "id": "explicit-lateral-debug",
+    "kind": "ambiguous",
+    "prompt": "Usa modo lateral y genera hipotesis antes de editar",
+    "expected": "lateral_strict"
+  }
+]
+

@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+
+def plugin_root() -> Path:
+    return Path(os.environ.get("CLAUDE_PLUGIN_ROOT") or Path(__file__).resolve().parents[1]).resolve()
+
+
+def plugin_data() -> Path:
+    return Path(os.environ.get("CLAUDE_PLUGIN_DATA") or (Path.home() / ".lateral-mode-plugin")).resolve()
+
+
+def project_dir() -> Path:
+    return Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path.cwd()).resolve()
+
+
+def has_option(args: list[str], name: str) -> bool:
+    return any(arg == name or arg.startswith(f"{name}=") for arg in args)
+
+
+def bootstrap() -> None:
+    root = plugin_root()
+    sys.path.insert(0, str(root / "vendor"))
+    data = plugin_data()
+    os.environ["LATERAL_HOME"] = str(data)
+
+    from lateral.core import DEFAULT_CONFIG, DEFAULT_STATE, save_json
+
+    lateral_dir = data / ".lateral"
+    config_path = lateral_dir / "config.json"
+    state_path = lateral_dir / "state.json"
+    if not config_path.exists():
+        config = dict(DEFAULT_CONFIG)
+        config.update({"enabled": True, "mode": "auto", "last_enabled_mode": "auto", "targets": ["claude"]})
+        save_json(config_path, config)
+    if not state_path.exists():
+        save_json(state_path, dict(DEFAULT_STATE))
+
+
+def main() -> None:
+    bootstrap()
+    from lateral.cli import main as lateral_main
+
+    args = sys.argv[1:]
+    if not has_option(args, "--project"):
+        args.extend(["--project", str(project_dir())])
+    if not has_option(args, "--platform"):
+        args.extend(["--platform", "claude"])
+    sys.argv = ["lateral", "hook", *args]
+    lateral_main()
+
+
+if __name__ == "__main__":
+    main()
